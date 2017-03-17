@@ -153,9 +153,12 @@ module Rets
       if opts[:count] == COUNT.only
         Parser::Compact.get_count(res.body)
       else
-        results = Parser::Compact.parse_document(
-          res.body
-        )
+        if opts.fetch(:format, "COMPACT") == 'STANDARD-XML'
+          results = Parser::StandardXML.parse_document(res.body)
+        else
+          results = Parser::Compact.parse_document(res.body)
+        end
+
         if opts[:resolve]
           rets_class = find_rets_class(opts[:search_type], opts[:class])
           decorate_results(results, rets_class)
