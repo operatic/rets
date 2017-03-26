@@ -22,16 +22,18 @@ module Rets
         hash ||= {}
 
         if xml.class != Nokogiri::XML::NodeSet && xml.name == 'PropertyDetails'
-          hash['ListingKey'] = xml.attributes['ID'].value
-          hash['ModificationTimestamp'] = xml.attributes['LastUpdated'].value
+          hash = set_attributes(hash, xml)
 
           xml.children.each do |child|
             if child.children.length == 1 && child.children[0].type == Nokogiri::XML::Reader::TYPE_TEXT
+              hash[child.name] = set_attributes({}, child)
               hash[child.name] = child.children[0].text
             else
-              if child.name == "Photo"
+              if child.name == 'Photo'
+                hash["#{child.name}s"] = set_attributes({}, child)
                 hash["#{child.name}s"] = get_photos(child) if child.name == "Photo"
               else
+                hash[child.name] = set_attributes({}, child)
                 hash[child.name] = self.xml_to_hash(child.children, hash[child.name])
               end
             end
@@ -39,15 +41,17 @@ module Rets
         elsif xml.class == Nokogiri::XML::NodeSet
           xml.each do |node|
             if node.children.length == 1 && node.children[0].type == Nokogiri::XML::Reader::TYPE_TEXT
+              hash[node.name] = set_attributes({}, node)
               hash[node.name] = node.children[0].text
             else
-              if node.name == "Phones"
+              if node.name == 'Phones'
                 hash[node.name] = []
 
                 node.children.each do |child|
                   hash[node.name] << get_phone(child) if node.name == "Phones"
                 end
               else
+                hash[node.name] = set_attributes({}, node)
                 hash[node.name] = self.xml_to_hash(node.children, hash[node.name])
               end
             end
@@ -55,6 +59,16 @@ module Rets
         end
 
         hash
+      end
+
+      def self.set_attributes(hash, xml)
+        if xml.attributes.length > 0
+          xml.attributes.each do |attribute|
+            hash[attribute[1].name] = attribute[1].value
+          end
+
+          hash
+        end
       end
 
       def self.get_phone(phone)
