@@ -358,7 +358,24 @@ module Rets
     end
 
     def http_post(url, params, extra_headers = {})
-      @http_client.http_post(url, params, extra_headers)
+      retries = 0
+
+      while retries <= 5 do
+        begin
+          return @http_client.http_post(url, params, extra_headers)
+        rescue HTTPClient::ReceiveTimeoutError => e
+          puts e.message
+          puts e.backtrace.inspect
+          puts "##############################################"
+          puts "#"
+          puts "# RETRYING!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!"
+          puts "#"
+          puts "##############################################"
+          retries += 1
+        end
+      end
+
+      raise HTTPClient::ReceiveTimeoutError
     end
 
     def tries
