@@ -82,7 +82,7 @@ module Rets
     alias search find
 
     def find_with_retries(opts = {})
-      retries = 0
+      retries = 5
       find_with_given_retry(retries, opts)
     end
 
