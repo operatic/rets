@@ -25,7 +25,7 @@ module Rets
       end
 
       if options[:receive_timeout]
-        http.receive_timeout = options[:receive_timeout]
+        http.receive_timeout = 1000
       end
 
       if options[:cookie_store]
